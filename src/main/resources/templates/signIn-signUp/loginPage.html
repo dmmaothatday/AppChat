@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Web Chat</title>
+    <link th:href="@{/css/loginPage.css}" rel="stylesheet" media="screen" type="text/css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script th:src="@{https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.all.min.js}"></script>
+</head>
+<body>
+<h2>Đăng nhập / Đăng ký</h2>
+
+<div class="container" id="container">
+    <div class="form-container sign-in-container">
+        <form name='f' th:action="@{/j_spring_security_check}" method='POST'>
+            <h1>Đăng nhập</h1>
+            <input type='text' name='username' value='' placeholder="Tài khoản">
+            <input type='password' name='password' placeholder="Mật khẩu"/>
+            <input class="submit" name="submit" type="submit" value="Đăng nhập"/>
+        </form>
+    </div>
+
+
+    <div class="form-container sign-up-container">
+        <form th:action="@{/sign-up}" method='POST'>
+            <h1>Tạo tài khoản</h1>
+            <input id="user-account" type="text" name="user-account" placeholder="Tài khoản"/>
+            <input id="password" type="password" name="password" placeholder="Mật khẩu"/>
+            <input id="re-password" type="password" name="re-password" placeholder="Nhập Lại Mật khẩu"/>
+            <input class="submit" name="submit" type="submit" value="Đăng ký" onclick="return validate()"/>
+        </form>
+    </div>
+
+
+    <div class="overlay-container">
+        <div class="overlay">
+            <div class="overlay-panel overlay-left">
+                <button class="ghost" id="signIn">Đăng nhập</button>
+            </div>
+            <div class="overlay-panel overlay-right">
+                <button class="ghost" id="signUp">Đăng Ký</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:if="${message}">
+    <h4 id="message" th:text="${message}"></h4>
+</th:block>
+
+</body>
+<script th:src="@{/js/loginPage.js}"></script>
+
+</html>

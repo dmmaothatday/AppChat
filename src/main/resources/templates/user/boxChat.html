@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset='UTF-8'>
+    <title>Web Chat</title>
+    <meta name="robots" content="noindex">
+    <link rel="canonical" href="https://codepen.io/emilcarlsson/pen/ZOQZaV?limit=all&page=74&q=contact+"/>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.0/handlebars.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.1.1/list.min.js"></script>
+    <!--    libs for stomp and sockjs-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.4.0/sockjs.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <!--    end libs for stomp and sockjs-->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" rel="stylesheet"
+          type="text/css">
+    <link rel="stylesheet" href="/css/boxChat.css">
+    <script>try {
+        Typekit.load({async: true});
+    } catch (e) {
+    }</script>
+    <link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css'>
+    <!--------------------------------------------------------------------------------------->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+            integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+
+
+    <style class="cp-pen-styles">
+    </style>
+    <style>
+        a {
+            color: white;
+            text-decoration-line: none;
+        }
+
+        a:hover {
+            color: white;
+            text-decoration-line: none;
+        }
+
+        p {
+            margin-bottom: 0px;
+        }
+    </style>
+
+    <style>
+        #input-file-message {
+            display: none;
+        }
+
+        .custom-file-upload {
+            display: inline-block;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div id="frame">
+    <nav aria-label="breadcrumb" class="main-breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item active" aria-current="page">Nhắn tin</a></li>
+            <li class="breadcrumb-item"><a th:href="@{/friend/search-friend}">Tìm kiếm bạn bè</a></li>
+            <li class="breadcrumb-item"><a th:href="@{/friend/list-request}">Danh sách lời mời kết bạn</a></li>
+            <li class="breadcrumb-item"><a th:href="@{/user/profile}"> Thông tin cá nhân </a></li>
+            <li class="ml-auto">
+                <a th:if="${#request.userPrincipal != null}" th:href="@{/logout}">Đăng xuất</a>
+            </li>
+        </ol>
+    </nav>
+    <div id="sidepanel">
+        <div id="profile">
+            <div class="wrap">
+                <img id="profile-img" style="  object-fit: cover;"
+                     th:src="@{${'/image/display/'+ userInfo.getUserId()}}"
+                     class="online" alt=""/>
+                <p th:text="${userInfo.getUserName()}"></p>
+                <i class="fa fa-chevron-down expand-button" aria-hidden="true"></i>
+
+                <div id="expanded">
+                    <label><i class="fa fa-google fa-fw" aria-hidden="true"></i></label>
+                    <input name="twitter" type="text" th:value="${userInfo.getUserEmail()}" readonly/>
+                    <input id="userId" name="twitter" type="text" th:value="${userInfo.getUserId()}" readonly hidden/>
+                    <label><i class="fa fa-user fa-fw" aria-hidden="true"></i></label>
+                    <input name="twitter" type="text" th:value="${userInfo.getUserName()}" readonly/>
+                    <label><i class="fa fa-phone fa-fw" aria-hidden="true"></i></label>
+                    <input name="twitter" type="text" th:value="${userInfo.getUserContactNumber()}" readonly/>
+                </div>
+            </div>
+        </div>
+        <div id="search">
+            <label><i class="fa fa-search" aria-hidden="true"></i></label>
+            <input type="text" placeholder="Tìm kiếm bạn bè..."/>
+        </div>
+        <div id="contacts">
+            <ul>
+                <p>Bạn bè</p>
+                <th:block th:each="row,rowStat : ${friendList}">
+                    <!--Dùng để hiển thị contact cho đúng-->
+                    <li class="contact active">
+                        <div class="wrap">
+
+                            <div th:if="${row.getFriendReceiverId().getOnline()} eq '1'">
+                                <span class="contact-status online"></span>
+                            </div>
+
+                            <div th:if="${row.getFriendReceiverId().getOnline()} eq '0'">
+                                <span class="contact-status offline"></span>
+                            </div>
+                            <a th:href="@{'/box-chat/'+${row.getFriendReceiverId().getUserId()}}">
+                                <img class="img"
+                                     th:src="@{${'/image/display/' + row.getFriendReceiverId().getUserId()}}"
+                                     alt=""/>
+                                <div class="meta">
+                                    <p th:text="${row.getFriendReceiverId().getUserName()}" class="name"></p>
+                                    <!--Nếu rỗng thì hiện 'Click to chat with ...'-->
+                                    <p style="color: white; text-decoration-line: none" class="preview"
+                                       th:text="${row.getLastMessage() != null ? row.getLastMessage() : 'Click to chat with ' +
+                                        row.getFriendReceiverId().getUserName()}"></p>
+                                </div>
+                            </a>
+                        </div>
+                    </li>
+                </th:block>
+            </ul>
+            <ul>
+                <p>Group chat</p>
+                <th:block th:each="row,rowStat : ${groupChatDetailList}">
+
+                    <li class="contact active">
+                        <div class="wrap">
+                            <div>
+                                <span class="contact-status online"></span>
+                            </div>
+                            <a th:href="@{'/group-chat/'+${row.getGroupChatId().getGroupChatId()}}">
+                                <img class="img"
+                                     th:src="@{${'/image/group-chat/' + row.getGroupChatId().getGroupChatId()}}"
+                                     alt=""/>
+                                <div class="meta">
+                                    <p th:text="${row.getGroupChatId().getGroupChatName()}" class="name"></p>
+                                    <!--Nếu rỗng thì hiện 'Click to chat with ...'-->
+                                    <p>Click to chat</p>
+                                </div>
+                            </a>
+                        </div>
+                    </li>
+                </th:block>
+            </ul>
+        </div>
+    </div>
+    <div class="content">
+        <div class="contact-profile">
+            <th:block th:if="${friendInfo}">
+                <img class="img" th:src="@{${'/image/display/' + friendInfo.getUserId()}}"
+                     alt=""/>
+                <p th:text="${friendInfo.getUserName()}"></p>
+                <input id="selectedUser" th:value="${friendInfo.getUserId()}" readonly hidden>
+            </th:block>
+        </div>
+
+        <div class="messages">
+            <ul>
+                <th:block th:each="row,rowStat : ${messageListOfOneFriend}">
+                    <div th:if="${row.getMessageSendId().getUserId() != userInfo.getUserId()}">
+                        <div th:if="${row.getTypeMessage() == 0}">
+                            <li class="sent">
+                                <img th:src="@{${'/image/display/'+ row.getMessageSendId().getUserId()}}"
+                                     alt=""/>
+                                <p th:text="${row.getMessageBody()}"></p>
+                            </li>
+                        </div>
+                        <div th:if="${row.getTypeMessage() == 1}">
+                            <li class="sent">
+                                <img th:src="@{${'/image/display/'+ row.getMessageSendId().getUserId()}}"
+                                     alt=""/>
+                                <img style="width: 300px; height: 300px; border-radius: 0; object-fit: cover"
+                                     th:src="@{${'/image/display/message-file/' + row.getMessageId()}}">
+                            </li>
+                        </div>
+
+                    </div>
+                    <div th:if="${row.getMessageSendId().getUserId() == userInfo.getUserId()}">
+                        <div th:if="${row.getTypeMessage() == 0}">
+                            <li class="replies">
+                                <img th:src="@{${'/image/display/'+ row.getMessageSendId().getUserId()}}"
+                                     alt=""/>
+                                <p th:text="${row.getMessageBody()}"></p>
+                            </li>
+                        </div>
+                        <div th:if="${row.getTypeMessage() == 1}">
+                            <li class="replies">
+                                <img th:src="@{${'/image/display/'+ row.getMessageSendId().getUserId()}}"
+                                     alt=""/>
+                                <img style="width: 300px; height: 300px; border-radius: 0; object-fit: cover"
+                                     th:src="@{${'/image/display/message-file/' + row.getMessageId()}}">
+                            </li>
+                        </div>
+                    </div>
+                </th:block>
+            </ul>
+        </div>
+        </th:block>
+        <div class="message-input">
+            <div class="wrap">
+                <input id="message-to-send" type="text" placeholder="Nhắn tin..."/>
+                <label class="custom-file-upload">
+                    <i class="fa fa-paperclip attachment" aria-hidden="true">
+                        <input id="input-file-message" type="file" onchange="renderValueFromInputFileToInputText()">
+                    </i>
+                </label>
+                <button id="sendBtn" class="submit"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal Create Group Chat -->
+    <div class="modal fade" id="createGroupChat" tabindex="-1" role="dialog"
+         aria-labelledby="exampleModalCenterTitleCreateGroupChat" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitleCreateGroupChat">Tạo nhóm mới</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form th:action="@{/groupChat/create}" method="post">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label for="group-name" class="col-form-label">Nhập tên nhóm</label>
+                                <input type="text" class="form-control" name="group-name" placeholder="Tên nhóm"
+                                       id="group-name">
+
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Tạo nhóm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+<script src='https://code.jquery.com/jquery-2.2.4.min.js'></script>
+
+
+<script id="message-template" type="text/x-handlebars-template">
+    <!--//ben phai-->
+    <li class="replies">
+        <img th:src="@{{{image}}}"
+             alt=""/>
+        <p>{{messageOutput}}</p>
+    </li>
+</script>
+
+<script id="message-template-file" type="text/x-handlebars-template">
+    <!--//ben phai-->
+    <li class="replies">
+        <img th:src="@{{{image}}}"
+             alt=""/>
+        <img style="width: 300px; height: 300px; border-radius: 0; object-fit: cover"
+             th:src="@{{{messageOutput}}}">
+    </li>
+</script>
+
+<script id="message-response-template" type="text/x-handlebars-template">
+    <!--//ben trai-->
+    <li class="sent">
+        <img th:src="@{{{image}}}"
+             alt=""/>
+        <p>{{response}}</p>
+
+    </li>
+</script>
+
+<script id="message-response-template-file" type="text/x-handlebars-template">
+    <!--//ben trai-->
+    <li class="sent">
+        <img th:src="@{{{image}}}"
+             alt=""/>
+        <img style="width: 300px; height: 300px; border-radius: 0; object-fit: cover"
+             th:src="@{{{response}}}">
+
+    </li>
+</script>
+
+<script>
+
+</script>
+<script th:src="@{/js/box-chat.js}"></script>
+<script th:src="@{/js/boxchat-chat.js}"></script>
+<script th:src="@{/js/boxchat-custom.js}"></script>
+</body>
+
+</html>

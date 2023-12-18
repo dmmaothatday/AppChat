@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Web Chat</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link th:href="@{/css/addFriend.css}" rel="stylesheet" media="screen" type="text/css"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <!--------------------------------------------------------------------------------------->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+            integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <style>
+        a:hover {
+            text-decoration-line: none;
+        }
+
+        .h1 .h2 .h3 .h4 .h5 .h6 {
+            font-weight: 300;
+            line-height: 1.2;
+        }
+
+    </style>
+
+</head>
+
+<body>
+<div class="container">
+    <div class="main-body">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="main-breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/box-chat}">Nhắn tin</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Tìm kiếm bạn bè</li>
+                <li class="breadcrumb-item"><a th:href="@{/friend/list-request}">Danh sách lời mời kết bạn</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/user/profile}"> Thông tin cá nhân </a></li>
+                <li class="ml-auto">
+                    <a th:if="${#request.userPrincipal != null}" th:href="@{/logout}">Đăng xuất</a>
+                </li>
+            </ol>
+        </nav>
+        <!-- /Breadcrumb -->
+
+
+        <div id="w">
+            <div class="tab-content">
+
+                <div id="menu">
+
+                    <form id="searchForm" th:action="@{/friend/search}" method='POST'>
+                        <input id="userName" type="text" th:name="userName" placeholder="Search..">
+                        <input id="submit" class="submit" name="submit" type="submit" value="Tìm kiếm"
+                               onclick="find()"/>
+                    </form>
+
+
+                    <div class="media" th:each="row : ${searchFriendDTOS}">
+                        <div class="tt">
+                            <div class="media-left media-middle">
+                                <img th:src="@{${'/image/display/' + row.getUserId()}}" class="media-object"
+                                     style="width:100px; object-fit: contain">
+                            </div>
+                            <div class="media-body" style="text-decoration-line: none">
+                                <h3 class="media-heading" th:text="${row.getUserName()}"></h3>
+                                <p>Thông tin cơ bản</p>
+                            </div>
+                        </div>
+                        <div class="bt">
+                            <th:block th:if="${row.getFriendStatus() != 99}">
+                                <button class="btn btn-info">
+                                    <a th:target="_blank" style="color: white"
+                                       th:href="@{${'/user/profile/'+ row.getUserId()}}">Xem thông tin</a>
+                                </button>
+                            </th:block>
+                            <button class="btn btn-info">
+
+                                <div th:if="${row.getFriendStatus() == 1}">
+                                    Bạn bè
+                                </div>
+                                <div th:if="${row.getFriendStatus() == 0}">
+                                    Chờ xác nhận
+                                </div>
+                                <div th:if="${row.getFriendStatus() == -99}" th:id="${row.getUserId()}"
+                                     th:onclick="'requestFriend(' + ${row.getUserId()}+')'">
+                                    Gửi lời mời kết bạn
+                                </div>
+                                <div th:if="${row.getFriendStatus() == 99}">
+                                    <a th:target="_blank" style="color: white" th:href="@{/}">Xem thông tin của bạn</a>
+                                </div>
+
+
+                            </button>
+                        </div>
+                    </div>
+
+                    <th:block th:if="${empty}">
+                        <h6 style="text-align: center">Không có dữ liệu tìm kiếm</h6>
+                    </th:block>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function requestFriend(id) {
+
+        console.log("request " + id);
+
+        $.ajax({
+            type: 'POST',
+            contentType: "application/json",
+            url: "/friend/add/" + id,
+            success: function () {
+                console.log("request SUCCESS");
+                location.reload();
+
+            },
+            error: function () {
+                console.log("ERROR");
+            }
+        })
+    }
+</script>
+
+</body>
+
+
+</html>
