@@ -29,8 +29,6 @@ public class UserController {
     private String uploadFolder;
 
 
-    private static final Logger log = LoggerFactory.getLogger("UserController.class");
-
     @Autowired
     UserService userService;
 

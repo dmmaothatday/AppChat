@@ -26,19 +26,16 @@ import java.security.Principal;
 @Controller
 public class MainController {
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+
 
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private FriendService friendService;
 
     @Autowired
     private MessageService messageService;
 
-    ModelMapper modelMapper = new ModelMapper();
+
 
     @GetMapping({"/login"})
     public ModelAndView loginPage() {
@@ -78,20 +75,7 @@ public class MainController {
         return modelAndView;
     }
 
-/*
-    @PostMapping("/checkDuplicate/{userAccount}")
-    public ModelAndView checkDuplicate(@PathVariable("userAccount") String userAccount,
-                                       RedirectAttributes redirectAttributes) {
-        ModelAndView modelAndView = new ModelAndView("redirect:" + "/login");
-        com.example.projectappchat.entity.User user = userService.findUserByAccount(userAccount);
-        if (user != null) {
-            redirectAttributes.addFlashAttribute("message", "Đăng ký thành công, xin mời đăng nhập");
-        }
 
-
-        return modelAndView;
-    }
-*/
 
     @GetMapping("/admin")
     //Principal có thể hiểu là một người, hoặc một thiết bị,
@@ -142,29 +126,6 @@ public class MainController {
         Message message = messageService.findMessageByMessageId(Long.parseLong(messageId));
         response.getOutputStream().write(message.getMessageBodyFile());
         response.getOutputStream().close();
-    }
-
-    @GetMapping("/403")
-    public ModelAndView accessDenied(Principal principal) {
-
-        ModelAndView modelAndView = new ModelAndView("403Page");
-
-        if (principal != null) {
-
-            User loginUser = (User) ((Authentication) principal).getPrincipal();
-
-            String userInfo = WebUtils.toString(loginUser);
-
-            modelAndView.addObject("userInfo", userInfo);
-
-            String message = "Hi " + principal.getName() //
-                    + "<br> You do not have permission to access this page!";
-
-            modelAndView.addObject("message", message);
-
-        }
-
-        return modelAndView;
     }
 
 }

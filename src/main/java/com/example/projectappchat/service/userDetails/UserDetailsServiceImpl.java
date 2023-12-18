@@ -31,7 +31,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     + " was not found in the database");
         }
 
-
         List<GrantedAuthority> grantedAuthorityList = new ArrayList<>();
 // Thay thế kiểm tra roleNames != null bằng cách trực tiếp tạo quyền (authority) mặc định nếu không sử dụng roleRepository
         GrantedAuthority defaultAuthority = new SimpleGrantedAuthority("DEFAULT_ROLE");

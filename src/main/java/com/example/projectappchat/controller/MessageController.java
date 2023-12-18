@@ -30,10 +30,8 @@ public class MessageController {
     @Autowired
     private UserService userService;
 
-
     @Autowired
     UserRepository userRepository;
-
 
     @MessageMapping("/chat/{to}")
     public void sendMessage(@DestinationVariable String to, MessageModel messageModel) {

@@ -12,7 +12,9 @@ public interface FriendService {
     List<Friend> findFriendByFriendReceiverIdAndFriendStatus(Long userId, byte friendStatus);
 
     Friend findFriendByFriendSendIdAndFriendReceiverId(Long friendSendId, Long friendReceiverId);
+
     Friend findFriendByFriendSendIdAndFriendReceiverIdOrOpposite(Long friendSendId, Long friendReceiverId);
+
     void delete(Friend friend);
 
     List<Friend> findFriendOnline(Long userId);
